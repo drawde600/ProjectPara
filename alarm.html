@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Para - Approaching Destination</title>
+    <style>
+        :root {
+            --primary-gradient-start: #00BFA5;
+            --primary-gradient-end: #00897B;
+            --dark-bg: #1e2130;
+            --darker-bg: #171924;
+            --darkest-bg: #0F111A;
+            --card-bg: rgba(30, 33, 48, 0.85);
+            --button-color: #e53935;
+            --text-color: #ffffff;
+            --secondary-text: #B8B8D0;
+            --accent-aqua: #4ecdc4;
+            --border-radius: 12px;
+            --map-bg: #0F111A;
+            --map-water: #1E3A5F;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 380px;
+            background: var(--darker-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            height: 788px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .header {
+            background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        
+        .header .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header .logo-icon {
+            margin-right: 8px;
+        }
+        
+        .header .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header .refresh-icon {
+            cursor: pointer;
+        }
+        
+        .map-container {
+            flex: 1;
+            position: relative;
+            background-color: var(--map-bg);
+            overflow: hidden;
+        }
+        
+        .map-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .map-controls {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .map-control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(30, 33, 48, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .alert-container {
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .alert-box {
+            background-color: rgba(24, 26, 38, 0.95);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            width: 90%;
+            max-width: 340px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .alert-title {
+            color: var(--accent-aqua);
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .alert-close {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .destination-name {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .destination-details {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .detail-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .detail-icon {
+            margin-right: 8px;
+        }
+        
+        .detail-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .alert-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .alert-btn {
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .stop-btn {
+            background-color: var(--button-color);
+            color: white;
+        }
+        
+        .snooze-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .upcoming-buses {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            color: var(--secondary-text);
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+        
+        .bus-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .bus-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .bus-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-aqua);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 16px;
+        }
+        
+        .bus-details {
+            flex: 1;
+        }
+        
+        .bus-route {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .bus-destination {
+            color: var(--secondary-text);
+            font-size: 13px;
+        }
+        
+        .bus-time {
+            font-weight: 600;
+            color: var(--accent-aqua);
+        }
+        
+        /* Map styling */
+        .map-grid {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="3" width="16" height="16" rx="2" fill="white" fill-opacity="0.2"/>
+                        <path d="M4 11H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 3H8C5.79086 3 4 4.79086 4 7V17H20V7C20 4.79086 18.2091 3 16 3Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="7" cy="14" r="1" fill="white"/>
+                        <circle cx="17" cy="14" r="1" fill="white"/>
+                    </svg>
+                </div>
+                <span class="logo-text">Project Para</span>
+            </div>
+            <div class="refresh-icon" id="refreshBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 4V10H7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 20V14H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20.49 9.00001C19.9828 7.56329 19.1209 6.28067 17.9845 5.27102C16.8482 4.26137 15.4745 3.56428 14 3.24601C12.5255 2.92774 10.9998 3.00001 9.56 3.45636C8.12022 3.91271 6.82196 4.73765 5.78 5.84001L1 10M23 14L18.22 18.16C17.1781 19.2624 15.8798 20.0873 14.44 20.5436C13.0002 21 11.4745 21.0722 10 20.754C8.52552 20.4357 7.15183 19.7386 6.01547 18.729C4.87911 17.7193 4.01718 16.4367 3.51 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div class="map-content">
+                <!-- City Map SVG -->
+                <svg class="map-grid" viewBox="0 0 400 500" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+                    <!-- Dark background -->
+                    <rect width="100%" height="100%" fill="#0F111A"/>
+                    
+                    <!-- Water areas -->
+                    <path d="M250,150 Q300,160 350,120 Q400,80 450,100 L450,0 L180,0 Z" fill="#1E3A5F"/>
+                    
+                    <!-- City Roads - Main Grid -->
+                    <!-- Vertical Roads -->
+                    <path d="M50,0 L50,500" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M100,0 L100,500" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M150,0 L150,500" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M200,0 L200,500" stroke="white" stroke-width="1.5" stroke-opacity="0.7" fill="none"/>
+                    <path d="M250,0 L250,500" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M300,0 L300,500" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M350,0 L350,500" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    
+                    <!-- Horizontal Roads -->
+                    <path d="M0,50 L400,50" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M0,100 L400,100" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M0,150 L400,150" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M0,200 L400,200" stroke="white" stroke-width="1.5" stroke-opacity="0.7" fill="none"/>
+                    <path d="M0,250 L400,250" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M0,300 L400,300" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M0,350 L400,350" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M0,400 L400,400" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    <path d="M0,450 L400,450" stroke="white" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+                    
+                    <!-- Diagonal Roads -->
+                    <path d="M0,0 L150,150" stroke="white" stroke-width="1" stroke-opacity="0.4" fill="none"/>
+                    <path d="M400,0 L250,150" stroke="white" stroke-width="1" stroke-opacity="0.4" fill="none"/>
+                    <path d="M0,400 L150,250" stroke="white" stroke-width="1" stroke-opacity="0.4" fill="none"/>
+                    <path d="M400,400 L250,250" stroke="white" stroke-width="1" stroke-opacity="0.4" fill="none"/>
+                    
+                    <!-- Central Circle -->
+                    <circle cx="200" cy="200" r="5" fill="white" fill-opacity="0.7"/>
+                    
+                    <!-- Secondary Roads -->
+                    <path d="M75,25 L75,475" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M125,25 L125,475" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M175,25 L175,475" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M225,25 L225,475" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M275,25 L275,475" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M325,25 L325,475" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    
+                    <path d="M25,75 L375,75" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M25,125 L375,125" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M25,175 L375,175" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M25,225 L375,225" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M25,275 L375,275" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M25,325 L375,325" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M25,375 L375,375" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    <path d="M25,425 L375,425" stroke="white" stroke-width="0.5" stroke-opacity="0.3" fill="none"/>
+                    
+                    <!-- Current Route Highlight -->
+                    <path d="M200,0 L200,150 L100,150 L100,250 L200,250 L200,500" 
+                          stroke="#4ecdc4" stroke-width="3" stroke-opacity="0.9" fill="none"/>
+                          
+                    <!-- User Location -->
+                    <circle cx="200" cy="160" r="6" fill="#4ecdc4"/>
+                    
+                    <!-- Destination Location -->
+                    <circle cx="200" cy="140" r="8" stroke="#4ecdc4" stroke-width="2" fill="none">
+                        <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite" />
+                    </circle>
+                </svg>
+            </div>
+            
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <div class="map-control-btn" id="centerBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8V16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 12H16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="map-control-btn" id="zoomInBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 8V16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 12H16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="map-control-btn" id="zoomOutBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 12H16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Alert Popup -->
+            <div class="alert-container">
+                <div class="alert-box" id="alertBox">
+                    <div class="alert-header">
+                        <div class="alert-title">Approaching Destination</div>
+                        <div class="alert-close" id="closeAlert">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M6 6L18 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="destination-name">Central Station</div>
+                    <div class="destination-details">
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="12" cy="10" r="3" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="detail-text">0.5 km</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 6V12L16 14" stroke="#4ecdc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="detail-text">2 min</div>
+                        </div>
+                    </div>
+                    <div class="alert-actions">
+                        <div class="alert-btn stop-btn" id="stopAlertBtn">Stop Alert</div>
+                        <div class="alert-btn snooze-btn" id="snoozeBtn">Snooze 5min</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="upcoming-buses">
+            <div class="section-title">Nearby Buses</div>
+            <div class="bus-list">
+                <div class="bus-item">
+                    <div class="bus-icon">12</div>
+                    <div class="bus-details">
+                        <div class="bus-route">Route 12</div>
+                        <div class="bus-destination">Downtown</div>
+                    </div>
+                    <div class="bus-time">3 min</div>
+                </div>
+                <div class="bus-item">
+                    <div class="bus-icon">15</div>
+                    <div class="bus-details">
+                        <div class="bus-route">Route 15</div>
+                        <div class="bus-destination">Shopping District</div>
+                    </div>
+                    <div class="bus-time">7 min</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const centerBtn = document.getElementById('centerBtn');
+            const zoomInBtn = document.getElementById('zoomInBtn');
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
+            const closeAlert = document.getElementById('closeAlert');
+            const stopAlertBtn = document.getElementById('stopAlertBtn');
+            const snoozeBtn = document.getElementById('snoozeBtn');
+            const alertBox = document.getElementById('alertBox');
+            
+            // Initialize with alert popup visible
+            let isAlertVisible = true;
+            let snoozeCount = 0;
+            
+            // Refresh button functionality
+            refreshBtn.addEventListener('click', function() {
+                console.log('Refreshing map data...');
+                // Add refresh animation
+                this.style.animation = 'rotate 1s linear';
+                setTimeout(() => {
+                    this.style.animation = '';
+                }, 1000);
+            });
+            
+            // Map control buttons
+            centerBtn.addEventListener('click', function() {
+                console.log('Centering map...');
+            });
+            
+            zoomInBtn.addEventListener('click', function() {
+                console.log('Zooming in...');
+            });
+            
+            zoomOutBtn.addEventListener('click', function() {
+                console.log('Zooming out...');
+            });
+            
+            // Alert popup actions
+            closeAlert.addEventListener('click', function() {
+                dismissAlert();
+            });
+            
+            stopAlertBtn.addEventListener('click', function() {
+                dismissAlert();
+                showToast('Alert stopped');
+            });
+            
+            snoozeBtn.addEventListener('click', function() {
+                dismissAlert();
+                snoozeCount++;
+                
+                // Show snooze message
+                showToast('Alert snoozed for 5 minutes');
+                
+                // Set timer to show alert again after snooze period
+                if (snoozeCount < 3) {
+                    setTimeout(() => {
+                        showAlert();
+                    }, 10000); // For demo purposes, we'll use 10 seconds instead of 5 minutes
+                }
+            });
+            
+            function dismissAlert() {
+                if (isAlertVisible) {
+                    alertBox.style.animation = 'fadeOut 0.3s ease-in-out forwards';
+                    setTimeout(() => {
+                        alertBox.parentElement.style.display = 'none';
+                        isAlertVisible = false;
+                    }, 300);
+                }
+            }
+            
+            function showAlert() {
+                if (!isAlertVisible) {
+                    alertBox.style.animation = 'slideDown 0.3s ease-out';
+                    alertBox.parentElement.style.display = 'flex';
+                    isAlertVisible = true;
+                }
+            }
+            
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.style.position = 'fixed';
+                toast.style.bottom = '20px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                toast.style.color = 'white';
+                toast.style.padding = '10px 20px';
+                toast.style.borderRadius = '20px';
+                toast.style.fontSize = '14px';
+                toast.style.zIndex = '1000';
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.5s';
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 500);
+                }, 3000);
+            }
+            
+            // Add keyframe animation for fadeOut
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeOut {
+                    from { opacity: 1; transform: translateY(0); }
+                    to { opacity: 0; transform: translateY(-20px); }
+                }
+                
+                @keyframes rotate {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

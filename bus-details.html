@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Para - Bus Details</title>
+    <style>
+        :root {
+            --primary-gradient-start: #009688;
+            --primary-gradient-end: #4DB6AC;
+            --dark-bg: #1e2130;
+            --darker-bg: #171924;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --button-color: #e53935;
+            --text-color: #333333;
+            --secondary-text: #666666;
+            --accent-green: #4cd964;
+            --border-radius: 12px;
+            --map-color: #a9a9a9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 380px;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            height: 788px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .header {
+            background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        
+        .header .back-button {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .header .back-button svg {
+            margin-right: 8px;
+        }
+        
+        .header .title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header .refresh-icon {
+            cursor: pointer;
+        }
+        
+        .map-container {
+            flex: 1;
+            position: relative;
+            background-color: var(--map-color);
+            overflow: hidden;
+        }
+        
+        .map-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius);
+            padding: 16px 20px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bus-details {
+            margin-bottom: 16px;
+        }
+        
+        .bus-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .bus-number {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .bus-status {
+            background-color: var(--accent-green);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .bus-route {
+            color: var(--secondary-text);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .bus-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--secondary-text);
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .onboard-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--border-radius);
+            border: none;
+            background-color: var(--button-color);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .onboard-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        /* Map styling */
+        .map-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .map-grid {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .bus-marker {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            margin-left: -20px;
+            margin-top: -20px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
+            z-index: 2;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Bus route paths */
+        .routes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 151, 136, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-gradient-start);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 16px;
+        }
+        
+        .loading-text {
+            color: var(--text-color);
+            font-size: 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Bus status color variants */
+        .bus-status.delayed {
+            background-color: #FFC107;
+        }
+        
+        .bus-status.canceled {
+            background-color: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="back-button" id="backButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Bus Details</span>
+            </div>
+            <div class="refresh-icon" id="refreshBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 4V10H7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 20V14H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20.49 9.00001C19.9828 7.56329 19.1209 6.28067 17.9845 5.27102C16.8482 4.26137 15.4745 3.56428 14 3.24601C12.5255 2.92774 10.9998 3.00001 9.56 3.45636C8.12022 3.91271 6.82196 4.73765 5.78 5.84001L1 10M23 14L18.22 18.16C17.1781 19.2624 15.8798 20.0873 14.44 20.5436C13.0002 21 11.4745 21.0722 10 20.754C8.52552 20.4357 7.15183 19.7386 6.01547 18.729C4.87911 17.7193 4.01718 16.4367 3.51 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div class="map-content">
+                <!-- Map grid with roads -->
+                <svg class="map-grid" viewBox="0 0 400 500" width="100%" height="100%">
+                    <!-- Background -->
+                    <rect width="100%" height="100%" fill="#a9a9a9"/>
+                    
+                    <!-- Main roads - white lines -->
+                    <!-- Vertical roads -->
+                    <path d="M80,0 L80,500" stroke="white" stroke-width="3" fill="none"/>
+                    <path d="M200,0 L200,500" stroke="white" stroke-width="5" fill="none"/>
+                    <path d="M320,0 L320,500" stroke="white" stroke-width="3" fill="none"/>
+                    
+                    <!-- Horizontal roads -->
+                    <path d="M0,120 L400,120" stroke="white" stroke-width="3" fill="none"/>
+                    <path d="M0,250 L400,250" stroke="white" stroke-width="5" fill="none"/>
+                    <path d="M0,380 L400,380" stroke="white" stroke-width="3" fill="none"/>
+                    
+                    <!-- City center grid -->
+                    <path d="M140,190 L140,310" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M170,190 L170,310" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M230,190 L230,310" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M260,190 L260,310" stroke="white" stroke-width="2" fill="none"/>
+                    
+                    <path d="M140,190 L260,190" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M140,220 L260,220" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M140,280 L260,280" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M140,310 L260,310" stroke="white" stroke-width="2" fill="none"/>
+                    
+                    <!-- Additional city roads -->
+                    <path d="M50,150 L140,190" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M50,350 L140,310" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M260,190 L350,150" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M260,310 L350,350" stroke="white" stroke-width="2" fill="none"/>
+                    
+                    <path d="M0,80 L400,80" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M0,420 L400,420" stroke="white" stroke-width="2" fill="none"/>
+                    
+                    <path d="M290,0 L290,500" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M110,0 L110,500" stroke="white" stroke-width="2" fill="none"/>
+                    
+                    <!-- Diagonal roads -->
+                    <path d="M0,0 L100,100" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M400,0 L300,100" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M0,500 L100,400" stroke="white" stroke-width="2" fill="none"/>
+                    <path d="M400,500 L300,400" stroke="white" stroke-width="2" fill="none"/>
+                    
+                    <!-- Current bus route - red line -->
+                    <path d="M200,0 L200,190 L170,190 L170,220 L230,220 L230,280 L170,280 L170,310 L200,310 L200,500" 
+                          stroke="#e53935" stroke-width="4" fill="none"/>
+                    
+                    <!-- Minor routes - also in red but thinner -->
+                    <path d="M0,250 L140,250" stroke="#e53935" stroke-width="3" fill="none"/>
+                    <path d="M260,250 L400,250" stroke="#e53935" stroke-width="3" fill="none"/>
+                    
+                    <!-- Bus stops - small circles -->
+                    <circle cx="200" cy="50" r="4" fill="white" stroke="#e53935" stroke-width="1"/>
+                    <circle cx="200" cy="150" r="4" fill="white" stroke="#e53935" stroke-width="1"/>
+                    <circle cx="170" cy="250" r="4" fill="white" stroke="#e53935" stroke-width="1"/>
+                    <circle cx="230" cy="250" r="4" fill="white" stroke="#e53935" stroke-width="1"/>
+                    <circle cx="200" cy="350" r="4" fill="white" stroke="#e53935" stroke-width="1"/>
+                    <circle cx="200" cy="450" r="4" fill="white" stroke="#e53935" stroke-width="1"/>
+                </svg>
+                
+                <!-- Bus marker -->
+                <div class="bus-marker" style="left: 200px; top: 250px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="3" width="16" height="16" rx="2" fill="#e53935"/>
+                        <path d="M16 17H8V18C8 18.5523 8.44772 19 9 19H15C15.5523 19 16 18.5523 16 18V17Z" fill="#e53935"/>
+                        <path d="M4 11H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 3H8C5.79086 3 4 4.79086 4 7V17H20V7C20 4.79086 18.2091 3 16 3Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="7" cy="14" r="1" fill="white"/>
+                        <circle cx="17" cy="14" r="1" fill="white"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="map-overlay">
+                <div class="bus-details">
+                    <div class="bus-title">
+                        <div class="bus-number">Bus 247</div>
+                        <div class="bus-status">On Time</div>
+                    </div>
+                    <div class="bus-route">Route: Downtown Express</div>
+                    <div class="bus-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Speed</div>
+                            <div class="stat-value">45 km/h</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Distance</div>
+                            <div class="stat-value">0.5 km</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">ETA</div>
+                            <div class="stat-value">2 mins</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="onboard-btn" id="onboardBtn">On Board</button>
+            </div>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div class="loading" id="loadingIndicator">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Updating map...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const backButton = document.getElementById('backButton');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const onboardBtn = document.getElementById('onboardBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const busMarker = document.querySelector('.bus-marker');
+            
+            // Back button functionality
+            backButton.addEventListener('click', function() {
+                alert('Going back to bus list...');
+                // In a real app, you would navigate back to the bus list
+            });
+            
+            // Refresh button functionality
+            refreshBtn.addEventListener('click', function() {
+                // Show loading indicator
+                loadingIndicator.style.display = 'flex';
+                
+                // Simulate API call with timeout
+                setTimeout(function() {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Update bus location (in a real app, this would come from an API)
+                    updateBusLocation();
+                }, 1500);
+            });
+            
+            // On Board button functionality
+            onboardBtn.addEventListener('click', function() {
+                window.location.href = 'onboard.html';
+            });
+            
+            // Simulated bus movement
+            let busPosition = { x: 200, y: 250 };
+            const waypoints = [
+                { x: 200, y: 220 },
+                { x: 230, y: 220 },
+                { x: 230, y: 250 },
+                { x: 230, y: 280 },
+                { x: 200, y: 280 },
+                { x: 170, y: 280 },
+                { x: 170, y: 250 },
+                { x: 170, y: 220 },
+                { x: 200, y: 220 }
+            ];
+            let currentWaypoint = 0;
+            
+            // Start bus movement simulation
+            const busMovement = setInterval(function() {
+                moveBusTowardsWaypoint();
+            }, 200);
+            
+            function moveBusTowardsWaypoint() {
+                const target = waypoints[currentWaypoint];
+                const speed = 5;
+                
+                const dx = target.x - busPosition.x;
+                const dy = target.y - busPosition.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < speed) {
+                    // We've reached the waypoint, move to next one
+                    busPosition.x = target.x;
+                    busPosition.y = target.y;
+                    currentWaypoint = (currentWaypoint + 1) % waypoints.length;
+                } else {
+                    // Move towards waypoint
+                    busPosition.x += (dx / distance) * speed;
+                    busPosition.y += (dy / distance) * speed;
+                }
+                
+                // Update bus marker position
+                busMarker.style.left = `${busPosition.x}px`;
+                busMarker.style.top = `${busPosition.y}px`;
+                
+                // Update ETA and distance based on position (in a real app, this would be more dynamic)
+                updateBusInfo();
+            }
+            
+            function updateBusInfo() {
+                // Simulate changing information based on bus movement
+                const eta = document.querySelector('.stat-value:nth-child(2)');
+                const distance = document.querySelector('.stat-item:nth-child(2) .stat-value');
+                
+                // These would be calculated based on actual bus position and route in a real app
+                const etaMinutes = Math.max(1, Math.floor(2 + Math.random()));
+                const distanceKm = (0.5 + Math.random() * 0.2).toFixed(1);
+                
+                eta.textContent = `${etaMinutes} mins`;
+                distance.textContent = `${distanceKm} km`;
+            }
+            
+            function updateBusLocation() {
+                // In a real app, you would update the bus position and details based on API data
+                // This is a simulation only
+                const statusIndicator = document.querySelector('.bus-status');
+                const statuses = ['On Time', 'Delayed', 'Arriving'];
+                const statusClasses = ['', 'delayed', ''];
+                
+                const randomStatus = Math.floor(Math.random() * statuses.length);
+                statusIndicator.textContent = statuses[randomStatus];
+                statusIndicator.className = 'bus-status ' + statusClasses[randomStatus];
+                
+                // Update speed randomly
+                const speedStat = document.querySelector('.stat-item:first-child .stat-value');
+                const randomSpeed = 40 + Math.floor(Math.random() * 15);
+                speedStat.textContent = `${randomSpeed} km/h`;
+            }
+            
+            // Cleanup interval on page unload
+            window.addEventListener('beforeunload', function() {
+                clearInterval(busMovement);
+            });
+        });
+    </script>
+</body>
+</html>
